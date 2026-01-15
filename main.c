@@ -11,13 +11,13 @@
  #define W 10
  #define H 20
  #define BOARD_SIZE (W*H)
- #define LOOP_TIME 500
+ #define LOOP_TIME 200
  
  typedef struct { int x, y; } coords;
  typedef struct { int8_t dx, dy; } offset;
  typedef struct {
      int x, y;
-     offset b[3];
+     offset b[4];
      uint8_t type;
  } tetromino;
  
@@ -79,74 +79,89 @@
  
  // random_generation
  tetromino *generate_tetromino() {
-     char types[7] = {'O', 'I', 'L', 'J', 'S', 'Z', 'T'};
-     char type = types[rand() % 7];
- 
-     tetromino *piece = malloc(sizeof(tetromino));
-     piece->x = 4;
-     piece->y = H - 1;
- 
-     switch (type) {
-         case 'O':
-             piece->b[0].dx = 0;
-             piece->b[0].dy = 1;
-             piece->b[1].dx = 1;
-             piece->b[1].dy = 1;
-             piece->b[2].dx = 1;
-             piece->b[2].dy = 0;
-             break;
-         case 'I':
-             piece->b[0].dx = 0;
-             piece->b[0].dy = -1;
-             piece->b[1].dx = 0;
-             piece->b[1].dy = 1;
-             piece->b[2].dx = 0;
-             piece->b[2].dy = 2;
-             break;
-         case 'L':
-             piece->b[0].dx = 0;
-             piece->b[0].dy = 1;
-             piece->b[1].dx = 0;
-             piece->b[1].dy = 2;
-             piece->b[2].dx = 1;
-             piece->b[2].dy = 0;
-             break;
-         case 'J':
-             piece->b[0].dx = 0;
-             piece->b[0].dy = 1;
-             piece->b[1].dx = 0;
-             piece->b[1].dy = 2;
-             piece->b[2].dx = -1;
-             piece->b[2].dy = 0;
-             break;
-         case 'S':
-             piece->b[0].dx = -1;
-             piece->b[0].dy = 0;
-             piece->b[1].dx = 0;
-             piece->b[1].dy = 1;
-             piece->b[2].dx = 1;
-             piece->b[2].dy = 1;
-             break;
-         case 'Z':
-             piece->b[0].dx = -1;
-             piece->b[0].dy = 1;
-             piece->b[1].dx = 0;
-             piece->b[1].dy = 1;
-             piece->b[2].dx = 1;
-             piece->b[2].dy = 0;
-             break;
-         case 'T':
-             piece->b[0].dx = -1;
-             piece->b[0].dy = 0;
-             piece->b[1].dx = 0;
-             piece->b[1].dy = 1;
-             piece->b[2].dx = 1;
-             piece->b[2].dy = 0;
-             break;
-     }
- 
-     return piece;
- }
+    char types[7] = {'O', 'I', 'L', 'J', 'S', 'Z', 'T'};
+    char type = types[rand() % 7];
+
+    tetromino *piece = malloc(sizeof(tetromino));
+    piece->x = 4;
+    piece->y = H - 1;
+
+    switch (type) {
+        case 'O':
+            piece->b[0].dx = 0;
+            piece->b[0].dy = 1;
+            piece->b[1].dx = 1;
+            piece->b[1].dy = 1;
+            piece->b[2].dx = 1;
+            piece->b[2].dy = 0;
+            piece->b[3].dx = 0;
+            piece->b[3].dy = 0;
+            break;
+        case 'I':
+            piece->b[0].dx = 0;
+            piece->b[0].dy = -1;
+            piece->b[1].dx = 0;
+            piece->b[1].dy = 1;
+            piece->b[2].dx = 0;
+            piece->b[2].dy = 2;
+            piece->b[3].dx = 0;
+            piece->b[3].dy = 0;
+            break;
+        case 'L':
+            piece->b[0].dx = 0;
+            piece->b[0].dy = 1;
+            piece->b[1].dx = 0;
+            piece->b[1].dy = 2;
+            piece->b[2].dx = 1;
+            piece->b[2].dy = 0;
+            piece->b[3].dx = 0;
+            piece->b[3].dy = 0;
+            break;
+        case 'J':
+            piece->b[0].dx = 0;
+            piece->b[0].dy = 1;
+            piece->b[1].dx = 0;
+            piece->b[1].dy = 2;
+            piece->b[2].dx = -1;
+            piece->b[2].dy = 0;
+            piece->b[3].dx = 0;
+            piece->b[3].dy = 0;
+            break;
+        case 'S':
+            piece->b[0].dx = -1;
+            piece->b[0].dy = 0;
+            piece->b[1].dx = 0;
+            piece->b[1].dy = 1;
+            piece->b[2].dx = 1;
+            piece->b[2].dy = 1;
+            piece->b[3].dx = 0;
+            piece->b[3].dy = 0;
+            break;
+        case 'Z':
+            piece->b[0].dx = -1;
+            piece->b[0].dy = 1;
+            piece->b[1].dx = 0;
+            piece->b[1].dy = 1;
+            piece->b[2].dx = 1;
+            piece->b[2].dy = 0;
+            piece->b[3].dx = 0;
+            piece->b[3].dy = 0;
+            break;
+        case 'T':
+            piece->b[0].dx = -1;
+            piece->b[0].dy = 0;
+            piece->b[1].dx = 0;
+            piece->b[1].dy = 1;
+            piece->b[2].dx = 1;
+            piece->b[2].dy = 0;
+            piece->b[3].dx = 0;
+            piece->b[3].dy = 0;
+            break;
+    }
+
+    return piece;
+}
+
  
  // movement
  void polling_loop() {
@@ -161,7 +176,7 @@
         int reprint = 0;
         // Check input during waiting...
         key = manage_input();
-        if (key) { regenerate = move_piece(key); }
+        if (key) { regenerate = move_piece(key); print_board(); }
         
         if (regenerate) {
             freeze_piece();
@@ -171,9 +186,6 @@
             reprint = 1;
             break;
         }
-
-        if (key) reprint = 1;
-        if (reprint) print_board();
 
     }
     
@@ -189,7 +201,7 @@
  
  int left_move() {
     int leftest_x = piece->x;
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {
         int x = piece->x + piece->b[i].dx;
         int y = piece->y + piece->b[i].dy;
         if (board[get_idx_from_coords(x-1, y)] != 0) return 0;
@@ -203,7 +215,7 @@
  
  int right_move() {
     int rightest_x = piece->x;
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {
         int x = piece->x + piece->b[i].dx;
         int y = piece->y + piece->b[i].dy;
         if (board[get_idx_from_coords(x+1, y)] != 0) return 0;
@@ -217,7 +229,7 @@
  
  int apply_gravity() {
     int downest_y = piece->y;
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {
         int x = piece->x + piece->b[i].dx;
         int y = piece->y + piece->b[i].dy;
         if (board[get_idx_from_coords(x, y-1)] != 0) return 1;
@@ -229,7 +241,7 @@
  }
  
  int rotate(int key) {
-     for (int i = 0; i < 3; i++) {
+     for (int i = 0; i < 4; i++) {
          int old_dx = piece->b[i].dx;
          int old_dy = piece->b[i].dy;
          if (key == 112) {
@@ -248,7 +260,7 @@
  // collision (return 1 if collide)
  int wall_collision() {
      if (piece->y < piece->y && (board[get_idx_from_coords(piece->x, piece->y)] == 1 || piece->y < 0)) return 1;
-     for (int i = 0; i < 3; i++) {
+     for (int i = 0; i < 4; i++) {
          int x = piece->x + piece->b[i].dx;
          int y = piece->y + piece->b[i].dy;
          if (y < (piece->y + piece->b[i].dy) && (board[get_idx_from_coords(x, y)] == 1 || y < 0)) return 1;
@@ -292,7 +304,7 @@
  void freeze_piece() {
      int overflow = piece->y >= H;
      board[get_idx_from_coords(piece->x, piece->y)] = 1;
-     for (int i = 0; i < 3; i++) {
+     for (int i = 0; i < 4; i++) {
          int x = piece->x + piece->b[i].dx;
          int y = piece->y + piece->b[i].dy;
          if (y >= H) overflow = 1;
@@ -350,7 +362,7 @@
  int piece_or_not(int x, int y) {
      if (piece->x == x && piece->y == y) return 1;
      int i = 0;
-     while (i < 3) {
+     while (i < 4) {
          if (piece->x + piece->b[i].dx == x && piece->y + piece->b[i].dy == y) return 1;
          i++;
      }
