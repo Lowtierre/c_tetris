@@ -156,8 +156,8 @@
 
     regenerate = apply_gravity();
     while (elapsed < LOOP_TIME) {
-        sleep_ms(10);
-        elapsed += 10;
+        sleep_ms(50);
+        elapsed += 50;
         int reprint = 0;
         // Check input during waiting...
         key = manage_input();
@@ -304,32 +304,47 @@
  // display
  void print_board() {
      clear_screen();
-     printf("\nTETRIS\n\n");
-     // print top line
-     printf("_");
+     // buffer size: title + top line + rows + bottom line + null
+     char buf[1024];
+     int pos = 0;
+
+     // title
+     pos += sprintf(buf + pos, "\nTETRIS\n\n");
+
+     // top line
+     buf[pos++] = '_';
      for (int x = 0; x < W; x++) {
-         printf("__");
+         buf[pos++] = '_';
+         buf[pos++] = '_';
      }
-     printf("_\n");
- 
+     buf[pos++] = '_';
+     buf[pos++] = '\n';
+
+     // board rows
      for (int y = H - 1; y >= 0; y--) {
-         printf("|");
+         buf[pos++] = 219;
          for (int x = 0; x < W; x++) {
              uint8_t val = board[get_idx_from_coords(x, y)] || piece_or_not(x, y);
              if (val) {
-                 putchar(219);
-                 putchar(219);
+                 buf[pos++] = 177;
+                 buf[pos++] = 177;
+             } else {
+                 buf[pos++] = ' ';
+                 buf[pos++] = ' ';
              }
-             else printf("  ");
          }
-         printf("|");
-         printf("\n");
+         buf[pos++] = 219;
+         buf[pos++] = '\n';
      }
- 
-     // print bottom line
+
+     // bottom line
      for (int x = 0; x < W + 1; x++) {
-         printf("||");
+         buf[pos++] = 219;
+         buf[pos++] = 219;
      }
+
+     buf[pos] = '\0';
+     printf("%s", buf);
  }
  
  int piece_or_not(int x, int y) {
