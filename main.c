@@ -35,7 +35,6 @@ void polling_loop();
 tetromino *generate_tetromino();
 
 // movement
-int manage_input();
 int move_piece(int key);
 int left_move();
 int right_move();
@@ -58,6 +57,7 @@ int piece_or_not(int x, int y);
 int get_idx_from_coords(int x, int y);
 coords get_coords_from_idx(int i);
 void copy_tetromino(tetromino *new, tetromino *old);
+
 // score
 void update_score(int deleted_rows, int sum_of_heights);
 
@@ -91,81 +91,49 @@ tetromino *generate_tetromino() {
    piece->x = 4;
    piece->y = H - 1;
 
+    int dx_0, dx_1, dx_2, dx_3,
+        dy_0, dy_1, dy_2, dy_3 = 0;
    switch (type) {
        case 'O':
-           piece->b[0].dx = 0;
-           piece->b[0].dy = 1;
-           piece->b[1].dx = 1;
-           piece->b[1].dy = 1;
-           piece->b[2].dx = 1;
-           piece->b[2].dy = 0;
-           piece->b[3].dx = 0;
-           piece->b[3].dy = 0;
+           dx_0 = 0; dy_0 = 1; dx_1 = 1; dy_1 = 1;
+           dx_2 = 1; dy_2 = 0; dx_3 = 0; dy_3 = 0;
            break;
        case 'I':
-           piece->b[0].dx = 0;
-           piece->b[0].dy = -1;
-           piece->b[1].dx = 0;
-           piece->b[1].dy = 1;
-           piece->b[2].dx = 0;
-           piece->b[2].dy = 2;
-           piece->b[3].dx = 0;
-           piece->b[3].dy = 0;
+           dx_0 = 0; dy_0 = -1; dx_1 = 0; dy_1 = 1;
+           dx_2 = 0; dy_2 = 2; dx_3 = 0; dy_3 = 0;
            break;
        case 'L':
-           piece->b[0].dx = 0;
-           piece->b[0].dy = 1;
-           piece->b[1].dx = 0;
-           piece->b[1].dy = 2;
-           piece->b[2].dx = 1;
-           piece->b[2].dy = 0;
-           piece->b[3].dx = 0;
-           piece->b[3].dy = 0;
+           dx_0 = 0; dy_0 = 1; dx_1 = 0; dy_1 = 2;
+           dx_2 = 1; dy_2 = 0; dx_3 = 0; dy_3 = 0;
            break;
        case 'J':
-           piece->b[0].dx = 0;
-           piece->b[0].dy = 1;
-           piece->b[1].dx = 0;
-           piece->b[1].dy = 2;
-           piece->b[2].dx = -1;
-           piece->b[2].dy = 0;
-           piece->b[3].dx = 0;
-           piece->b[3].dy = 0;
+           dx_0 = 0; dy_0 = 1; dx_1 = 0; dy_1 = 2;
+           dx_2 = -1; dy_2 = 0; dx_3 = 0; dy_3 = 0;
            break;
        case 'S':
-           piece->b[0].dx = -1;
-           piece->b[0].dy = 0;
-           piece->b[1].dx = 0;
-           piece->b[1].dy = 1;
-           piece->b[2].dx = 1;
-           piece->b[2].dy = 1;
-           piece->b[3].dx = 0;
-           piece->b[3].dy = 0;
+           dx_0 = -1; dy_0 = 0; dx_1 = 0; dy_1 = 1;
+           dx_2 = 1; dy_2 = 1; dx_3 = 0; dy_3 = 0;
            break;
        case 'Z':
-           piece->b[0].dx = -1;
-           piece->b[0].dy = 1;
-           piece->b[1].dx = 0;
-           piece->b[1].dy = 1;
-           piece->b[2].dx = 1;
-           piece->b[2].dy = 0;
-           piece->b[3].dx = 0;
-           piece->b[3].dy = 0;
+           dx_0 = -1; dy_0 = 1; dx_1 = 0; dy_1 = 1;
+           dx_2 = 1; dy_2 = 0; dx_3 = 0; dy_3 = 0;
            break;
        case 'T':
-           piece->b[0].dx = -1;
-           piece->b[0].dy = 0;
-           piece->b[1].dx = 0;
-           piece->b[1].dy = 1;
-           piece->b[2].dx = 1;
-           piece->b[2].dy = 0;
-           piece->b[3].dx = 0;
-           piece->b[3].dy = 0;
+           dx_0 = -1; dy_0 = 0; dx_1 = 0; dy_1 = 1;
+           dx_2 = 1; dy_2 = 0; dx_3 = 0; dy_3 = 0;
            break;
    }
+
+   piece->b[0].dx = dx_0;
+   piece->b[1].dx = dx_1;
+   piece->b[2].dx = dx_2;
+   piece->b[3].dx = dx_3;
+   piece->b[0].dy = dy_0;
+   piece->b[1].dy = dy_1;
+   piece->b[2].dy = dy_2;
+   piece->b[3].dy = dy_3;
    return piece;
 }
-
 
 // movement
 void polling_loop() {
@@ -177,7 +145,6 @@ void polling_loop() {
     while (elapsed < LOOP_TIME) {
         sleep_ms(25);
         elapsed += 25;
-        int reprint = 0;
         // Check input during waiting...
         key = manage_input();
         if (key) { regenerate = move_piece(key); print_board(); }
@@ -187,7 +154,6 @@ void polling_loop() {
             clean_complete_rows();
             free(piece);
             piece = generate_tetromino();
-            reprint = 1;
             break;
         }
     }
@@ -350,7 +316,7 @@ void print_board() {
     char buf[1024];
     int pos = 0;
     // title
-    pos += sprintf(buf + pos, "TETRIS\n\n[A]: left; [S]: down; [D]: right; [O]: counterclockwise; [P]: clockwise;\n\nScore: %d\n", score);
+    pos += sprintf(buf + pos, "TETRIS\n\n[A]: left; [S]: down; [D]: right; [P]: clockwise; [O]: counter-cw;\n\nScore: %d\n", score);
     // top line
     buf[pos++] = '_';
     for (int x = 0; x < W; x++) {
