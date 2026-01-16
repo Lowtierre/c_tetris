@@ -58,6 +58,9 @@ int piece_or_not(int x, int y);
 int get_idx_from_coords(int x, int y);
 coords get_coords_from_idx(int i);
 void copy_tetromino(tetromino *new, tetromino *old);
+// score
+void update_score(int deleted_rows, int sum_of_heights);
+
 
 // core
 int main() {
@@ -172,8 +175,8 @@ void polling_loop() {
 
     regenerate = apply_gravity();
     while (elapsed < LOOP_TIME) {
-        sleep_ms(50);
-        elapsed += 50;
+        sleep_ms(25);
+        elapsed += 25;
         int reprint = 0;
         // Check input during waiting...
         key = manage_input();
@@ -194,7 +197,11 @@ void polling_loop() {
 int move_piece(int key) {
     if (key == 75 || key == 97) return left_move();
     if (key == 77 || key == 100) return right_move();
-    if (key == 80 || key == 115) return apply_gravity();
+    if (key == 80 || key == 115) {
+        int grind = apply_gravity();
+        if (!grind) score++;
+        return grind;
+    }
     if (key == 111 || key == 112) return rotate(key);
 }
 
@@ -246,14 +253,14 @@ int rotate(int key) {
     for (int i = 0; i < 4; i++) {
         int old_dx = temp_tetromino->b[i].dx;
         int old_dy = temp_tetromino->b[i].dy;
-        if (key == 112) {
+        if (key == 112) {            // clockwise
+            temp_tetromino->b[i].dx = old_dy;
+            temp_tetromino->b[i].dy = -old_dx;
+
+        } else {
             // counterclockwise
             temp_tetromino->b[i].dx = -old_dy;
             temp_tetromino->b[i].dy = old_dx;
-        } else {
-            // clockwise
-            temp_tetromino->b[i].dx = old_dy;
-            temp_tetromino->b[i].dy = -old_dx;
         }
         
         int offset_x = calc_offset_x(temp_tetromino->b[i].dx);
@@ -294,6 +301,7 @@ int calc_offset_y(int dy) {
 void clean_complete_rows() {
     uint8_t piece_board[W*H] = {0};
     int cleaned_rows = 0;
+    int sum_of_heights = 0;
 
     for (int y = 0; y < H; y++) {
         int to_clean = 1;
@@ -304,7 +312,7 @@ void clean_complete_rows() {
             }
         }
 
-        if (to_clean) { cleaned_rows++; continue; }
+        if (to_clean) { cleaned_rows++; sum_of_heights += y + 1; continue; }
         for (int x = 0; x < W; x++)
             piece_board[get_idx_from_coords(x, y - cleaned_rows)] = board[get_idx_from_coords(x, y)];
 
@@ -319,7 +327,7 @@ void clean_complete_rows() {
     for (int i = 0; i < W*H; i++) board[i] = piece_board[i];
 
     // increment user score
-    score += cleaned_rows;
+    update_score(cleaned_rows, sum_of_heights);
 }
 
 // transform piece in a wall component
@@ -342,7 +350,7 @@ void print_board() {
     char buf[1024];
     int pos = 0;
     // title
-    pos += sprintf(buf + pos, "\nTETRIS\n\n");
+    pos += sprintf(buf + pos, "TETRIS\n\n[A]: left; [S]: down; [D]: right; [O]: counterclockwise; [P]: clockwise;\n\nScore: %d\n", score);
     // top line
     buf[pos++] = '_';
     for (int x = 0; x < W; x++) {
@@ -386,7 +394,6 @@ int piece_or_not(int x, int y) {
     return 0;
 }
 
-
 // utils
 int get_idx_from_coords(int x, int y) {
     return W*y + x;
@@ -406,4 +413,12 @@ void copy_tetromino(tetromino *new, tetromino *old) {
         new->b[i].dx = old->b[i].dx;
         new->b[i].dy = old->b[i].dy;
     }
+}
+
+// score
+void update_score(int deleted_rows, int sum_of_heights) {
+    int magic = 1;
+    if (deleted_rows == 4) magic *= 4;
+    int points = (sum_of_heights) * deleted_rows * magic;
+    score += points;
 }
